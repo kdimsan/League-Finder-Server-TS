@@ -12,7 +12,7 @@ import {
   ChampionData,
 } from "../@types/champions/championsResponses";
 
-const axios = require("axios");
+import axios from "axios";
 
 interface SummonerQueryReq {
   gameName: string;
@@ -22,15 +22,12 @@ interface SummonerQueryReq {
 class SummonersServices {
   constructor(private accountRegion: string) {}
   //private accountRegion: string = "br1"
-  private readonly baseUrl: string | undefined = process.env.BASE_URL;
-  private readonly KEY: string | undefined = process.env.API_KEY;
-  private readonly rankedUrl: string | undefined = process.env.RANKED_URL;
-  private readonly championMaestryUrl: string | undefined =
-    process.env.CHAMPION_MAESTRY_URL;
-  private readonly baseSummonerUrl: string | undefined =
-    process.env.BASE_SUMMONER_URL;
-  private readonly summonerDetailsUrl: string | undefined =
-    process.env.SUMMONER_DETAILS_URL;
+  private readonly baseUrl = process.env.BASE_URL;
+  private readonly KEY = process.env.API_KEY;
+  private readonly rankedUrl = process.env.RANKED_URL;
+  private readonly championMaestryUrl = process.env.CHAMPION_MAESTRY_URL;
+  private readonly baseSummonerUrl = process.env.BASE_SUMMONER_URL;
+  private readonly summonerDetailsUrl = process.env.SUMMONER_DETAILS_URL;
 
   async getSummonerData(
     gameName: string,
