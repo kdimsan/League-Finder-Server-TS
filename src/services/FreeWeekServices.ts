@@ -39,6 +39,7 @@ class FreeWeekController {
 
     return response.json({
       freeWeekChampionsData,
+      championsRes,
     });
   }
 }

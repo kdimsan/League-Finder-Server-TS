@@ -13,6 +13,7 @@ import {
 } from "../@types/champions/championsResponses";
 
 import axios from "axios";
+import { MatchResponse } from "../@types/matches/matchesTypes";
 
 interface SummonerQueryReq {
   gameName: string;
@@ -28,6 +29,8 @@ class SummonersServices {
   private readonly championMaestryUrl = process.env.CHAMPION_MAESTRY_URL;
   private readonly baseSummonerUrl = process.env.BASE_SUMMONER_URL;
   private readonly summonerDetailsUrl = process.env.SUMMONER_DETAILS_URL;
+  private readonly matchesUrl = process.env.MATCHES_URL;
+  private readonly matchByIdUrl = process.env.MATCH_BY_ID_URL;
 
   async getSummonerData(
     gameName: string,
@@ -43,7 +46,6 @@ class SummonersServices {
       const summonerPuuid = summonerResponseApi.puuid;
 
       const summonerDataByPuuidUrl = `https://${this.accountRegion}.${this.baseUrl}/${this.summonerDetailsUrl}/${summonerPuuid}?api_key=${this.KEY}`;
-      console.log("summonerDataByPuuidUrl:", summonerDataByPuuidUrl);
       const summonerDataByPuuidRes: SummonerByPuuid = (
         await axios.get(summonerDataByPuuidUrl)
       )["data"];
@@ -67,6 +69,35 @@ class SummonersServices {
       );
     } catch (error: any) {
       return error;
+    }
+  }
+
+  async getLatestMatches(summonerPuiid: string) {
+    try {
+      const matchesIdsUrl = `https://americas.${this.baseUrl}/${this.matchesUrl}/${summonerPuiid}/ids?start=0&count=20&api_key=${this.KEY}`;
+      const matchesResponse: string[] = (await axios.get(matchesIdsUrl)).data;
+
+      const matchesUrls: string[] = matchesResponse.map(
+        (matchUrl) =>
+          `https://americas.${this.baseUrl}/${this.matchByIdUrl}/${matchUrl}?api_key=${this.KEY}`
+      );
+      const matchesDetailsArray = [];
+
+      for (const match of matchesUrls) {
+        try {
+          const response: MatchResponse = (await axios.get(match)).data;
+
+          matchesDetailsArray.push({
+            info: response.info,
+            participants: response.metadata.participants,
+          });
+        } catch (err) {
+          console.error(`Error retrieving match: ${match}`);
+        }
+      }
+      return matchesDetailsArray;
+    } catch (error: any) {
+      return console.error("Erro ao obter IDs das partidas:", error);
     }
   }
 
@@ -150,10 +181,15 @@ class SummonersServices {
         .status(500)
         .json({ error: "Error retrieving top mastery champions" });
     }
+
+    const summonerLatestMatchesData = await this.getLatestMatches(
+      summonerData.puuid
+    );
     response.json({
       summonerData,
       summonerRankedData,
       summonerMaestryChampionsData,
+      summonerLatestMatchesData,
     });
   }
 }
