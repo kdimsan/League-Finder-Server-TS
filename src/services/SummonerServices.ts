@@ -13,7 +13,10 @@ import {
 } from "../@types/champions/championsResponses";
 
 import axios from "axios";
-import { MatchResponse } from "../@types/matches/matchesTypes";
+import {
+  MatchResponse,
+  MatchesDetailsArrayProps,
+} from "../@types/matches/matchesTypes";
 
 interface SummonerQueryReq {
   gameName: string;
@@ -72,7 +75,9 @@ class SummonersServices {
     }
   }
 
-  async getLatestMatches(summonerPuiid: string) {
+  async getLatestMatches(
+    summonerPuiid: string
+  ): Promise<MatchesDetailsArrayProps[]> {
     try {
       const matchesIdsUrl = `https://americas.${this.baseUrl}/${this.matchesUrl}/${summonerPuiid}/ids?start=0&count=20&api_key=${this.KEY}`;
       const matchesResponse: string[] = (await axios.get(matchesIdsUrl)).data;
@@ -81,15 +86,15 @@ class SummonersServices {
         (matchUrl) =>
           `https://americas.${this.baseUrl}/${this.matchByIdUrl}/${matchUrl}?api_key=${this.KEY}`
       );
-      const matchesDetailsArray = [];
+      const matchesDetailsArray: MatchesDetailsArrayProps[] = [];
 
       for (const match of matchesUrls) {
         try {
           const response: MatchResponse = (await axios.get(match)).data;
 
           matchesDetailsArray.push({
-            info: response.info,
-            participants: response.metadata.participants,
+            matchInfo: response.info,
+            participantsPuuid: response.metadata.participants,
           });
         } catch (err) {
           console.error(`Error retrieving match: ${match}`);
@@ -97,7 +102,7 @@ class SummonersServices {
       }
       return matchesDetailsArray;
     } catch (error: any) {
-      return console.error("Erro ao obter IDs das partidas:", error);
+      return error;
     }
   }
 
