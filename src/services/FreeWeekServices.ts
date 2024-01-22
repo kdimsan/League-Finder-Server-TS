@@ -6,10 +6,11 @@ import { FreeWeekRes } from "../@types/freeWeek/freeWeekTypes";
 
 class FreeWeekController {
   private readonly KEY = process.env.API_KEY;
+  private readonly CURRENT_PATCH = process.env.CURRENT_PATCH;
   private readonly BASE_URL = process.env.BASE_URL;
   private readonly FREE_ROTATION_URL = process.env.FREE_ROTATION_URL;
-  private readonly championsUrl =
-    "https://ddragon.leagueoflegends.com/cdn/13.23.1/data/en_US/champion.json";
+  private language = "en_US";
+  private readonly championsUrl = `https://ddragon.leagueoflegends.com/cdn/${this.CURRENT_PATCH}/data/${this.language}/champion.json`;
   private readonly freeWeekUrl = `https://br1.${this.BASE_URL}/${this.FREE_ROTATION_URL}?api_key=${this.KEY}`;
 
   async get(request: Request, response: Response) {
