@@ -4,7 +4,7 @@ import axios from "axios";
 import { ChampionData } from "../@types/champions/championsResponses";
 import { FreeWeekRes } from "../@types/freeWeek/freeWeekTypes";
 
-class FreeWeekController {
+class FreeWeekServices {
   private readonly KEY = process.env.API_KEY;
   private readonly CURRENT_PATCH = process.env.CURRENT_PATCH;
   private readonly BASE_URL = process.env.BASE_URL;
@@ -44,4 +44,4 @@ class FreeWeekController {
   }
 }
 
-module.exports = FreeWeekController;
+module.exports = FreeWeekServices;

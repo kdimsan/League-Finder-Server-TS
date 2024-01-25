@@ -14,8 +14,10 @@ import {
 
 import axios from "axios";
 import {
+  InfoReturn,
   MatchResponse,
-  MatchesDetailsArrayProps,
+  MatchesDetailsReturn,
+  NewParticipants,
 } from "../@types/matches/matchesTypes";
 
 interface SummonerQueryReq {
@@ -77,7 +79,7 @@ class SummonersServices {
 
   async getLatestMatches(
     summonerPuiid: string
-  ): Promise<MatchesDetailsArrayProps[]> {
+  ): Promise<MatchesDetailsReturn[]> {
     try {
       const matchesIdsUrl = `https://americas.${this.baseUrl}/${this.matchesUrl}/${summonerPuiid}/ids?start=0&count=20&api_key=${this.KEY}`;
       const matchesResponse: string[] = (await axios.get(matchesIdsUrl)).data;
@@ -86,14 +88,75 @@ class SummonersServices {
         (matchUrl) =>
           `https://americas.${this.baseUrl}/${this.matchByIdUrl}/${matchUrl}?api_key=${this.KEY}`
       );
-      const matchesDetailsArray: MatchesDetailsArrayProps[] = [];
+      const matchesDetailsArray: MatchesDetailsReturn[] = [];
 
       for (const match of matchesUrls) {
         try {
           const response: MatchResponse = (await axios.get(match)).data;
 
+          const participantsArray: NewParticipants[] =
+            response.info.participants.map((participant) => {
+              const primaryRune =
+                participant.perks.styles[0].selections[0].perk;
+              const secondaryRune = participant.perks.styles[1].style;
+              const runesArray = [
+                primaryRune.toString(),
+                secondaryRune.toString(),
+              ];
+
+              const userItemsArray = [
+                participant.item0,
+                participant.item1,
+                participant.item2,
+                participant.item3,
+                participant.item4,
+                participant.item5,
+                participant.item6,
+              ];
+
+              return {
+                assists: participant.assists,
+                champLevel: participant.champLevel,
+                championId: participant.championId,
+                championName: participant.championName,
+                deaths: participant.deaths,
+                goldEarned: participant.goldEarned,
+                kills: participant.kills,
+                lane: participant.lane,
+                neutralMinionsKilled: participant.neutralMinionsKilled,
+                perks: runesArray,
+                profileIcon: participant.profileIcon,
+                puuid: participant.puuid,
+                riotIdGameName: participant.riotIdGameName,
+                riotIdTagline: participant.riotIdTagline,
+                role: participant.role,
+                summonerId: participant.summonerId,
+                summoner1Id: participant.summoner1Id,
+                summoner2Id: participant.summoner2Id,
+                summonerLevel: participant.summonerLevel,
+                teamId: participant.teamId,
+                totalDamageDealtToChampions:
+                  participant.totalDamageDealtToChampions,
+                totalDamageTaken: participant.totalDamageTaken,
+                totalMinionsKilled: participant.totalMinionsKilled,
+                items: userItemsArray,
+                visionScore: participant.visionScore,
+                wardsKilled: participant.wardsKilled,
+                wardsPlaced: participant.wardsPlaced,
+                win: participant.win,
+              };
+            });
+          const matchInfoReturn: InfoReturn = {
+            gameMode: response.info.gameMode,
+            gameStartTimestamp: response.info.gameStartTimestamp,
+            gameDuration: response.info.gameDuration,
+            gameType: response.info.gameType,
+            participantsData: participantsArray,
+            teams: response.info.teams,
+          };
+
           matchesDetailsArray.push({
-            matchInfo: response.info,
+            matchInfo: matchInfoReturn,
             participantsPuuid: response.metadata.participants,
           });
         } catch (err) {
