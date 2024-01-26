@@ -17,7 +17,8 @@ import {
   InfoReturn,
   MatchResponse,
   MatchesDetailsReturn,
-  NewParticipants,
+  ParticipantsReturn,
+  Participant,
 } from "../@types/matches/matchesTypes";
 
 interface SummonerQueryReq {
@@ -94,58 +95,8 @@ class SummonersServices {
         try {
           const response: MatchResponse = (await axios.get(match)).data;
 
-          const participantsArray: NewParticipants[] =
-            response.info.participants.map((participant) => {
-              const primaryRune =
-                participant.perks.styles[0].selections[0].perk;
-              const secondaryRune = participant.perks.styles[1].style;
-              const runesArray = [
-                primaryRune.toString(),
-                secondaryRune.toString(),
-              ];
-
-              const userItemsArray = [
-                participant.item0,
-                participant.item1,
-                participant.item2,
-                participant.item3,
-                participant.item4,
-                participant.item5,
-                participant.item6,
-              ];
-
-              return {
-                assists: participant.assists,
-                champLevel: participant.champLevel,
-                championId: participant.championId,
-                championName: participant.championName,
-                deaths: participant.deaths,
-                goldEarned: participant.goldEarned,
-                kills: participant.kills,
-                lane: participant.lane,
-                neutralMinionsKilled: participant.neutralMinionsKilled,
-                perks: runesArray,
-                profileIcon: participant.profileIcon,
-                puuid: participant.puuid,
-                riotIdGameName: participant.riotIdGameName,
-                riotIdTagline: participant.riotIdTagline,
-                role: participant.role,
-                summonerId: participant.summonerId,
-                summoner1Id: participant.summoner1Id,
-                summoner2Id: participant.summoner2Id,
-                summonerLevel: participant.summonerLevel,
-                teamId: participant.teamId,
-                totalDamageDealtToChampions:
-                  participant.totalDamageDealtToChampions,
-                totalDamageTaken: participant.totalDamageTaken,
-                totalMinionsKilled: participant.totalMinionsKilled,
-                items: userItemsArray,
-                visionScore: participant.visionScore,
-                wardsKilled: participant.wardsKilled,
-                wardsPlaced: participant.wardsPlaced,
-                win: participant.win,
-              };
-            });
+          const participantsArray: ParticipantsReturn[] =
+            this.responseReestroctur(response.info.participants);
           const matchInfoReturn: InfoReturn = {
             gameMode: response.info.gameMode,
             gameStartTimestamp: response.info.gameStartTimestamp,
@@ -167,6 +118,56 @@ class SummonersServices {
     } catch (error: any) {
       return error;
     }
+  }
+  responseReestroctur(responseInfo: Participant[]) {
+    const returnArray: ParticipantsReturn[] = [];
+    responseInfo.map((participant) => {
+      const primaryRune = participant.perks.styles[0].selections[0].perk;
+      const secondaryRune = participant.perks.styles[1].style;
+      const runesArray = [primaryRune.toString(), secondaryRune.toString()];
+
+      const userItemsArray = [
+        participant.item0,
+        participant.item1,
+        participant.item2,
+        participant.item3,
+        participant.item4,
+        participant.item5,
+        participant.item6,
+      ];
+
+      return returnArray.push({
+        assists: participant.assists,
+        champLevel: participant.champLevel,
+        championId: participant.championId,
+        championName: participant.championName,
+        deaths: participant.deaths,
+        goldEarned: participant.goldEarned,
+        kills: participant.kills,
+        lane: participant.lane,
+        neutralMinionsKilled: participant.neutralMinionsKilled,
+        perks: runesArray,
+        profileIcon: participant.profileIcon,
+        puuid: participant.puuid,
+        riotIdGameName: participant.riotIdGameName,
+        riotIdTagline: participant.riotIdTagline,
+        role: participant.role,
+        summonerId: participant.summonerId,
+        summonerSpell1: participant.summoner1Id,
+        summonerSpell2: participant.summoner2Id,
+        summonerLevel: participant.summonerLevel,
+        teamId: participant.teamId,
+        totalDamageDealtToChampions: participant.totalDamageDealtToChampions,
+        totalDamageTaken: participant.totalDamageTaken,
+        totalMinionsKilled: participant.totalMinionsKilled,
+        items: userItemsArray,
+        visionScore: participant.visionScore,
+        wardsKilled: participant.wardsKilled,
+        wardsPlaced: participant.wardsPlaced,
+        win: participant.win,
+      });
+    });
+    return returnArray;
   }
 
   async getMaestryChampions(

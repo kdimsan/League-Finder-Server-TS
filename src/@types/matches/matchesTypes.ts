@@ -17,7 +17,7 @@ export interface InfoReturn {
   gameStartTimestamp: number;
   gameDuration: number;
   gameType: string;
-  participantsData: NewParticipants[];
+  participantsData: ParticipantsReturn[];
   teams: Team[];
 }
 
@@ -69,7 +69,7 @@ export interface Participant {
   win: boolean;
 }
 
-export interface NewParticipants {
+export interface ParticipantsReturn {
   assists: number;
   champLevel: number;
   championId: number;
@@ -86,8 +86,8 @@ export interface NewParticipants {
   riotIdTagline: string;
   role: string;
   summonerId: string;
-  summoner1Id: string;
-  summoner2Id: string;
+  summonerSpell1: string;
+  summonerSpell2: string;
   summonerLevel: number;
   teamId: number;
   totalDamageDealtToChampions: number;
