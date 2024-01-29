@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import "dotenv/config";
+const ChampionsUtil = require("../utils/ChampionsUtil");
 import {
   SummonerByPuuid,
   SummonerMaestryChampionsApiRes,
@@ -7,10 +8,6 @@ import {
   SummonerResponseData,
   TopSummonerChampions,
 } from "../@types/summoners/summonerResponse";
-import {
-  AllChampionsRes,
-  ChampionData,
-} from "../@types/champions/championsResponses";
 
 import axios from "axios";
 import {
@@ -18,8 +15,11 @@ import {
   MatchResponse,
   MatchesDetailsReturn,
   ParticipantsReturn,
-  Participant,
+  Challenges,
+  Info,
 } from "../@types/matches/matchesTypes";
+import { ChampionData } from "../@types/champions/championsResponses";
+//import { getRedis } from "../redisConfig";
 
 interface SummonerQueryReq {
   gameName: string;
@@ -96,12 +96,14 @@ class SummonersServices {
           const response: MatchResponse = (await axios.get(match)).data;
 
           const participantsArray: ParticipantsReturn[] =
-            this.responseReestroctur(response.info.participants);
+            this.responseReestroctur(response.info);
           const matchInfoReturn: InfoReturn = {
             gameMode: response.info.gameMode,
             gameStartTimestamp: response.info.gameStartTimestamp,
+            gameEndTimestamp: response.info.gameEndTimestamp,
             gameDuration: response.info.gameDuration,
             gameType: response.info.gameType,
+            queueId: response.info.queueId,
             participantsData: participantsArray,
             teams: response.info.teams,
           };
@@ -119,12 +121,58 @@ class SummonersServices {
       return error;
     }
   }
-  responseReestroctur(responseInfo: Participant[]) {
-    const returnArray: ParticipantsReturn[] = [];
-    responseInfo.map((participant) => {
+
+  async getMaestryChampions(
+    summonerPuuid: string
+  ): Promise<TopSummonerChampions[]> {
+    const summonerMaestryChampionsUrl = `https://${this.accountRegion}.${this.baseUrl}/${this.championMaestryUrl}/${summonerPuuid}?api_key=${this.KEY}`;
+
+    try {
+      const summonerMasteryResponse: SummonerMaestryChampionsApiRes[] = (
+        await axios.get(summonerMaestryChampionsUrl)
+      ).data;
+
+      const summonerTopMaestryChampionsPromises: Promise<TopSummonerChampions>[] =
+        summonerMasteryResponse.slice(0, 10).map(async (championKey) => {
+          const championKeyToCompare = championKey.championId;
+          const foundChampion: ChampionData =
+            await ChampionsUtil.findChampionsByKey(championKeyToCompare);
+          return {
+            championKey: championKey.championId,
+            championName: foundChampion.name,
+            championId: foundChampion.id,
+            championLevel: championKey.championLevel,
+            championPoints: championKey.championPoints,
+            lastPlayTime: championKey.lastPlayTime,
+            chestGranted: championKey.chestGranted,
+          };
+        });
+      const summonerTopMaestryChampions: TopSummonerChampions[] =
+        await Promise.all(summonerTopMaestryChampionsPromises);
+      return summonerTopMaestryChampions;
+    } catch (error: any) {
+      return error;
+    }
+  }
+
+  responseReestroctur(responseInfo: Info) {
+    const returnParticipantsArray: ParticipantsReturn[] = [];
+    //------------ TEAM BANS LOGIC ------------------------
+    // const teamsBans = responseInfo.teams.map(team => {
+    //   team.bans.map(championKey => {
+    //   return this.findChampionByKey(championKey).then({
+
+    //   });
+    //   })
+    // })
+
+    responseInfo.participants.map((participant) => {
       const primaryRune = participant.perks.styles[0].selections[0].perk;
       const secondaryRune = participant.perks.styles[1].style;
-      const runesArray = [primaryRune.toString(), secondaryRune.toString()];
+      const runes = {
+        mainRune: primaryRune,
+        secondaryRuneStyle: secondaryRune,
+      };
 
       const userItemsArray = [
         participant.item0,
@@ -136,8 +184,16 @@ class SummonersServices {
         participant.item6,
       ];
 
-      return returnArray.push({
+      const challengesReturn: Challenges = {
+        goldPerMinute: participant.challenges.goldPerMinute,
+        kda: participant.challenges.kda,
+        killParticipation: participant.challenges.killParticipation,
+        gameLength: participant.challenges.gameLength,
+      };
+
+      return returnParticipantsArray.push({
         assists: participant.assists,
+        challenges: challengesReturn,
         champLevel: participant.champLevel,
         championId: participant.championId,
         championName: participant.championName,
@@ -146,7 +202,7 @@ class SummonersServices {
         kills: participant.kills,
         lane: participant.lane,
         neutralMinionsKilled: participant.neutralMinionsKilled,
-        perks: runesArray,
+        perks: runes,
         profileIcon: participant.profileIcon,
         puuid: participant.puuid,
         riotIdGameName: participant.riotIdGameName,
@@ -167,56 +223,7 @@ class SummonersServices {
         win: participant.win,
       });
     });
-    return returnArray;
-  }
-
-  async getMaestryChampions(
-    summonerPuuid: string
-  ): Promise<TopSummonerChampions[]> {
-    const summonerMaestryChampionsUrl = `https://${this.accountRegion}.${this.baseUrl}/${this.championMaestryUrl}/${summonerPuuid}?api_key=${this.KEY}`;
-    const allChampionsUrl =
-      "https://ddragon.leagueoflegends.com/cdn/13.23.1/data/en_US/champion.json";
-
-    try {
-      const allChampionsRes: AllChampionsRes<ChampionData> = (
-        await axios.get(allChampionsUrl)
-      )["data"];
-      const summonerMasteryResponse: SummonerMaestryChampionsApiRes[] = (
-        await axios.get(summonerMaestryChampionsUrl)
-      ).data;
-
-      const summonerTopMaestryChampions: TopSummonerChampions[] =
-        summonerMasteryResponse.slice(0, 10).map((championKey) => {
-          const championKeyToCompare = championKey.championId.toString();
-          const foundChampion = this.findChampionByKey(
-            championKeyToCompare,
-            allChampionsRes
-          );
-
-          return {
-            championId: championKey.championId,
-            championName: foundChampion,
-            championLevel: championKey.championLevel,
-            championPoints: championKey.championPoints,
-            lastPlayTime: championKey.lastPlayTime,
-            chestGranted: championKey.chestGranted,
-          };
-        });
-
-      return summonerTopMaestryChampions;
-    } catch (error: any) {
-      return error;
-    }
-  }
-
-  findChampionByKey(
-    keyToCompare: string,
-    allChampions: AllChampionsRes<ChampionData>
-  ) {
-    const champion = Object.values(allChampions.data).find(
-      (champ) => champ.key === keyToCompare
-    );
-    return champion ? champion.name : "Champion not found";
+    return returnParticipantsArray;
   }
 
   async get(

@@ -44,8 +44,9 @@ export interface SummonerMaestryChampionsApiRes {
 }
 
 export interface TopSummonerChampions {
-  championId: number;
+  championKey: number;
   championName: string;
+  championId: string;
   championLevel: number;
   championPoints: number;
   lastPlayTime: number;

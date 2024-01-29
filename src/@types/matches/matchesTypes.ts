@@ -14,20 +14,24 @@ interface Metadata {
 
 export interface InfoReturn {
   gameMode: string;
+  gameEndTimestamp: number;
   gameStartTimestamp: number;
   gameDuration: number;
   gameType: string;
   participantsData: ParticipantsReturn[];
+  queueId: number;
   teams: Team[];
 }
 
-interface Info {
+export interface Info {
   gameMode: string;
+  gameEndTimestamp: number;
   gameStartTimestamp: number;
   gameDuration: number;
   gameId: number;
   gameType: string;
   participants: Participant[];
+  queueId: number;
   teams: Team[];
 }
 
@@ -71,6 +75,7 @@ export interface Participant {
 
 export interface ParticipantsReturn {
   assists: number;
+  challenges: Challenges;
   champLevel: number;
   championId: number;
   championName: string;
@@ -79,7 +84,7 @@ export interface ParticipantsReturn {
   kills: number;
   lane: string;
   neutralMinionsKilled: number;
-  perks: string[];
+  perks: Runes;
   profileIcon: number;
   puuid: string;
   riotIdGameName: string;
@@ -100,10 +105,16 @@ export interface ParticipantsReturn {
   win: boolean;
 }
 
-interface Challenges {
+interface Runes {
+  mainRune: number;
+  secondaryRuneStyle: number;
+}
+
+export interface Challenges {
   goldPerMinute: number;
   kda: number;
   killParticipation: number;
+  gameLength: number;
 }
 
 interface Perks {

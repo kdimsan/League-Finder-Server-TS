@@ -1,8 +1,10 @@
 require("dotenv/config");
+const ChampionsUltil = require("../utils/ChampionsUtil");
 import { Request, Response } from "express";
 import axios from "axios";
 import { ChampionData } from "../@types/champions/championsResponses";
 import { FreeWeekRes } from "../@types/freeWeek/freeWeekTypes";
+import { setRedis } from "../redisConfig";
 
 class FreeWeekServices {
   private readonly KEY = process.env.API_KEY;
@@ -14,33 +16,34 @@ class FreeWeekServices {
   private readonly freeWeekUrl = `https://br1.${this.BASE_URL}/${this.FREE_ROTATION_URL}?api_key=${this.KEY}`;
 
   async get(request: Request, response: Response) {
-    const championsRes: ChampionData = (await axios.get(this.championsUrl)).data
-      .data;
+    try {
+      const championsRes: ChampionData = (await axios.get(this.championsUrl))
+        .data.data;
+      await setRedis("all-champions", JSON.stringify(championsRes));
 
-    const freeWeekRes: FreeWeekRes = (await axios.get(this.freeWeekUrl)).data;
+      const freeWeekRes: FreeWeekRes = (await axios.get(this.freeWeekUrl)).data;
+      const freeWeekChampionIds: number[] = freeWeekRes.freeChampionIds;
 
-    const freeWeekChampionsData = findChampionsByKey(
-      freeWeekRes.freeChampionIds
-    );
-
-    function findChampionsByKey(keys: number[]) {
-      const allChampions: ChampionData[] = Object.values(championsRes);
-      const foundChampions: ChampionData[] = [];
-
-      keys.forEach((key) =>
-        allChampions.forEach((champion) => {
-          if (Number(champion.key) === key) {
-            foundChampions.push(champion);
-          }
-        })
+      const freeWeekChampionsDataPromises = freeWeekChampionIds.map(
+        async (key) => {
+          return await ChampionsUltil.findChampionsByKey(key);
+        }
       );
-      return foundChampions;
-    }
 
-    return response.json({
-      freeWeekChampionsData,
-      championsRes,
-    });
+      const freeWeekChampionsData = await Promise.all(
+        freeWeekChampionsDataPromises
+      );
+
+      return response.json({
+        freeWeekChampionsData,
+        championsRes,
+      });
+    } catch (error) {
+      console.error("Error fetching free week data.", error);
+      return response
+        .status(500)
+        .json({ error: "Error fetching free week data." });
+    }
   }
 }
 
