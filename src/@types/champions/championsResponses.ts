@@ -16,6 +16,12 @@ export interface ChampionData {
   stats: Stats;
 }
 
+export interface ChampionBase {
+  championName: string;
+  championId: string;
+  championKey: number;
+}
+
 interface Info {
   attack: number;
   defense: number;

@@ -1,3 +1,5 @@
+import { ChampionBase } from "../champions/championsResponses";
+
 export interface MatchResponse {
   metadata: Metadata;
   info: Info;
@@ -20,7 +22,7 @@ export interface InfoReturn {
   gameType: string;
   participantsData: ParticipantsReturn[];
   queueId: number;
-  teams: Team[];
+  teams: TeamsResponse[];
 }
 
 export interface Info {
@@ -141,11 +143,23 @@ interface Selection {
   var3: number;
 }
 
-interface Team {
-  bans: any[];
+export interface Team {
+  bans: Bans[];
   objectives: Objectives;
   teamId: number;
   win: boolean;
+}
+
+export interface TeamsResponse {
+  bans: ChampionBase[];
+  objectives: Objectives;
+  teamId: number;
+  win: boolean;
+}
+
+export interface Bans {
+  championId: number;
+  pickTurn: number;
 }
 
 interface Objectives {

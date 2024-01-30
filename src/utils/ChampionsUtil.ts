@@ -2,7 +2,7 @@ import { ChampionData } from "../@types/champions/championsResponses";
 import { getRedis } from "../redisConfig";
 
 class ChampionsUtil {
-  async findChampionsByKey(key: number): Promise<ChampionData | null> {
+  async findChampionsByKey(key: number): Promise<ChampionData | string> {
     const allChampionsRedis = await getRedis("all-champions");
     const allChampions = JSON.parse(allChampionsRedis);
 
@@ -12,7 +12,11 @@ class ChampionsUtil {
       (champion) => Number(champion.key) === key
     );
 
-    return championsWithKey || null;
+    if (championsWithKey) {
+      return championsWithKey;
+    } else {
+      return "Cannot find champion by its key";
+    }
   }
 }
 

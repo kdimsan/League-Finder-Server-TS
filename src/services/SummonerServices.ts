@@ -16,10 +16,14 @@ import {
   MatchesDetailsReturn,
   ParticipantsReturn,
   Challenges,
-  Info,
+  Participant,
+  Team,
+  TeamsResponse,
 } from "../@types/matches/matchesTypes";
-import { ChampionData } from "../@types/champions/championsResponses";
-//import { getRedis } from "../redisConfig";
+import {
+  ChampionBase,
+  ChampionData,
+} from "../@types/champions/championsResponses";
 
 interface SummonerQueryReq {
   gameName: string;
@@ -95,8 +99,13 @@ class SummonersServices {
         try {
           const response: MatchResponse = (await axios.get(match)).data;
 
+          const teamsArray: TeamsResponse[] = await this.teamsRestructure(
+            response.info.teams
+          );
+
           const participantsArray: ParticipantsReturn[] =
-            this.responseReestroctur(response.info);
+            this.participantsRestructure(response.info.participants);
+
           const matchInfoReturn: InfoReturn = {
             gameMode: response.info.gameMode,
             gameStartTimestamp: response.info.gameStartTimestamp,
@@ -105,7 +114,7 @@ class SummonersServices {
             gameType: response.info.gameType,
             queueId: response.info.queueId,
             participantsData: participantsArray,
-            teams: response.info.teams,
+            teams: teamsArray,
           };
 
           matchesDetailsArray.push({
@@ -155,18 +164,36 @@ class SummonersServices {
     }
   }
 
-  responseReestroctur(responseInfo: Info) {
+  async teamsRestructure(teams: Team[]) {
+    const teamData = await Promise.all(
+      teams.map(async (team) => {
+        const teamBansPromise: ChampionBase[] = await Promise.all(
+          team.bans.map(async (championKey) => {
+            const champion: ChampionData =
+              await ChampionsUtil.findChampionsByKey(championKey.championId);
+            return {
+              championName: champion.name,
+              championId: champion.id,
+              championKey: championKey.championId,
+            };
+          })
+        );
+        const teamBans = await Promise.all(teamBansPromise);
+        return {
+          bans: teamBans,
+          objectives: team.objectives,
+          teamId: team.teamId,
+          win: team.win,
+        };
+      })
+    );
+    return teamData;
+  }
+
+  participantsRestructure(participants: Participant[]) {
     const returnParticipantsArray: ParticipantsReturn[] = [];
-    //------------ TEAM BANS LOGIC ------------------------
-    // const teamsBans = responseInfo.teams.map(team => {
-    //   team.bans.map(championKey => {
-    //   return this.findChampionByKey(championKey).then({
 
-    //   });
-    //   })
-    // })
-
-    responseInfo.participants.map((participant) => {
+    participants.map((participant) => {
       const primaryRune = participant.perks.styles[0].selections[0].perk;
       const secondaryRune = participant.perks.styles[1].style;
       const runes = {
