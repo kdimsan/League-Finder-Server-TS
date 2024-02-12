@@ -179,9 +179,20 @@ class SummonersServices {
           })
         );
         const teamBans = await Promise.all(teamBansPromise);
+
+        const objectives = {
+          baron: team.objectives.baron.kills,
+          champion: team.objectives.champion.kills,
+          dragon: team.objectives.dragon.kills,
+          horde: team.objectives.horde.kills,
+          inhibitor: team.objectives.inhibitor.kills,
+          riftHerald: team.objectives.riftHerald.kills,
+          tower: team.objectives.tower.kills,
+        };
+
         return {
           bans: teamBans,
-          objectives: team.objectives,
+          objectives: objectives,
           teamId: team.teamId,
           win: team.win,
         };
@@ -218,6 +229,9 @@ class SummonersServices {
         gameLength: participant.challenges.gameLength,
       };
 
+      const totalFarm =
+        participant.totalMinionsKilled + participant.neutralMinionsKilled;
+
       return returnParticipantsArray.push({
         assists: participant.assists,
         challenges: challengesReturn,
@@ -243,6 +257,7 @@ class SummonersServices {
         totalDamageDealtToChampions: participant.totalDamageDealtToChampions,
         totalDamageTaken: participant.totalDamageTaken,
         totalMinionsKilled: participant.totalMinionsKilled,
+        totalFarm: totalFarm,
         items: userItemsArray,
         visionScore: participant.visionScore,
         wardsKilled: participant.wardsKilled,

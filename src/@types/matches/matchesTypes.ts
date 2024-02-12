@@ -100,6 +100,7 @@ export interface ParticipantsReturn {
   totalDamageDealtToChampions: number;
   totalDamageTaken: number;
   totalMinionsKilled: number;
+  totalFarm: number;
   items: number[];
   visionScore: number;
   wardsKilled: number;
@@ -152,7 +153,7 @@ export interface Team {
 
 export interface TeamsResponse {
   bans: ChampionBase[];
-  objectives: Objectives;
+  objectives: ObjectivesReturn;
   teamId: number;
   win: boolean;
 }
@@ -160,6 +161,16 @@ export interface TeamsResponse {
 export interface Bans {
   championId: number;
   pickTurn: number;
+}
+
+interface ObjectivesReturn {
+  baron: number;
+  champion: number;
+  dragon: number;
+  horde: number;
+  inhibitor: number;
+  riftHerald: number;
+  tower: number;
 }
 
 interface Objectives {
