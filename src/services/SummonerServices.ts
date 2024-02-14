@@ -87,11 +87,12 @@ class SummonersServices {
   ): Promise<MatchesDetailsReturn[]> {
     try {
       const matchesIdsUrl = `https://americas.${this.baseUrl}/${this.matchesUrl}/${summonerPuiid}/ids?start=0&count=20&api_key=${this.KEY}`;
-      const matchesResponse: string[] = (await axios.get(matchesIdsUrl)).data;
+      const matchesIdsResponse: string[] = (await axios.get(matchesIdsUrl))
+        .data;
 
-      const matchesUrls: string[] = matchesResponse.map(
-        (matchUrl) =>
-          `https://americas.${this.baseUrl}/${this.matchByIdUrl}/${matchUrl}?api_key=${this.KEY}`
+      const matchesUrls: string[] = matchesIdsResponse.map(
+        (matchId) =>
+          `https://americas.${this.baseUrl}/${this.matchByIdUrl}/${matchId}?api_key=${this.KEY}`
       );
       const matchesDetailsArray: MatchesDetailsReturn[] = [];
 
@@ -99,12 +100,13 @@ class SummonersServices {
         try {
           const response: MatchResponse = (await axios.get(match)).data;
 
-          const teamsArray: TeamsResponse[] = await this.teamsRestructure(
-            response.info.teams
-          );
-
           const participantsArray: ParticipantsReturn[] =
-            this.participantsRestructure(response.info.participants);
+            this.participantsMapping(response.info.participants);
+
+          const teamsArray: TeamsResponse[] = await this.teamsMapping(
+            response.info.teams,
+            participantsArray
+          );
 
           const matchInfoReturn: InfoReturn = {
             gameMode: response.info.gameMode,
@@ -122,7 +124,7 @@ class SummonersServices {
             participantsPuuid: response.metadata.participants,
           });
         } catch (err) {
-          console.error(`Error retrieving match: ${match}`);
+          console.error(`Error retrieving match: ${match} ${err}`);
         }
       }
       return matchesDetailsArray;
@@ -164,44 +166,7 @@ class SummonersServices {
     }
   }
 
-  async teamsRestructure(teams: Team[]) {
-    const teamData = await Promise.all(
-      teams.map(async (team) => {
-        const teamBansPromise: ChampionBase[] = await Promise.all(
-          team.bans.map(async (championKey) => {
-            const champion: ChampionData =
-              await ChampionsUtil.findChampionsByKey(championKey.championId);
-            return {
-              championName: champion.name,
-              championId: champion.id,
-              championKey: championKey.championId,
-            };
-          })
-        );
-        const teamBans = await Promise.all(teamBansPromise);
-
-        const objectives = {
-          baron: team.objectives.baron.kills,
-          champion: team.objectives.champion.kills,
-          dragon: team.objectives.dragon.kills,
-          horde: team.objectives.horde.kills,
-          inhibitor: team.objectives.inhibitor.kills,
-          riftHerald: team.objectives.riftHerald.kills,
-          tower: team.objectives.tower.kills,
-        };
-
-        return {
-          bans: teamBans,
-          objectives: objectives,
-          teamId: team.teamId,
-          win: team.win,
-        };
-      })
-    );
-    return teamData;
-  }
-
-  participantsRestructure(participants: Participant[]) {
+  participantsMapping(participants: Participant[]) {
     const returnParticipantsArray: ParticipantsReturn[] = [];
 
     participants.map((participant) => {
@@ -268,6 +233,78 @@ class SummonersServices {
     return returnParticipantsArray;
   }
 
+  async teamsMapping(teams: Team[], participantsMapped: ParticipantsReturn[]) {
+    const teamData = await Promise.all(
+      teams.map(async (team) => {
+        const teamBansPromise: ChampionBase[] = await Promise.all(
+          team.bans.map(async (championKey) => {
+            const champion: ChampionData =
+              await ChampionsUtil.findChampionsByKey(championKey.championId);
+            return {
+              championName: champion.name,
+              championId: champion.id,
+              championKey: championKey.championId,
+            };
+          })
+        );
+        const teamBans = await Promise.all(teamBansPromise);
+
+        const teamParticipants: ParticipantsReturn[] = [];
+
+        participantsMapped.map((participant) => {
+          if (participant.teamId !== team.teamId) {
+            return;
+          }
+          return teamParticipants.push(participant);
+        });
+
+        const matchGoldByTeam = teamParticipants.reduce(
+          (acc, value) => acc + value.goldEarned,
+          0
+        );
+        const matchDamageDealtByTeam = teamParticipants.reduce(
+          (acc, value) => acc + value.totalDamageDealtToChampions,
+          0
+        );
+        const matchDamageTakenByTeam = teamParticipants.reduce(
+          (acc, value) => acc + value.totalDamageTaken,
+          0
+        );
+        const wardsPlacedByTeam = teamParticipants.reduce(
+          (acc, value) => acc + value.wardsPlaced,
+          0
+        );
+        const farmByTeam = teamParticipants.reduce(
+          (acc, value) => acc + value.totalFarm,
+          0
+        );
+
+        const objectives = {
+          baron: team.objectives.baron.kills,
+          champion: team.objectives.champion.kills,
+          dragon: team.objectives.dragon.kills,
+          horde: team.objectives.horde.kills,
+          inhibitor: team.objectives.inhibitor.kills,
+          riftHerald: team.objectives.riftHerald.kills,
+          tower: team.objectives.tower.kills,
+          totalGold: matchGoldByTeam,
+          damageDealt: matchDamageDealtByTeam,
+          damageTaken: matchDamageTakenByTeam,
+          totalFarm: farmByTeam,
+          totalWards: wardsPlacedByTeam,
+        };
+
+        return {
+          bans: teamBans,
+          objectives: objectives,
+          teamId: team.teamId,
+          win: team.win,
+        };
+      })
+    );
+    return teamData;
+  }
+
   async get(
     request: Request<{}, {}, {}, SummonerQueryReq>,
     response: Response
@@ -303,6 +340,7 @@ class SummonersServices {
     const summonerLatestMatchesData = await this.getLatestMatches(
       summonerData.puuid
     );
+
     response.json({
       summonerData,
       summonerRankedData,

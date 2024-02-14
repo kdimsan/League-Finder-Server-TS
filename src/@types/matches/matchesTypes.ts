@@ -171,6 +171,11 @@ interface ObjectivesReturn {
   inhibitor: number;
   riftHerald: number;
   tower: number;
+  totalGold: number;
+  damageDealt: number;
+  damageTaken: number;
+  totalFarm: number;
+  totalWards: number;
 }
 
 interface Objectives {
