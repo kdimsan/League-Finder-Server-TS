@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "nodemon src/server.ts"
+    "dev": "nodemon src/server.ts",
+    "start": "pm2 start ecosystem.config.js --env production",
+    "start:dev": "nodemon src/server.ts"
   },
   "keywords": [],
   "author": "",
