@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon src/server.ts",
-    "start": "pm2 start src/server.ts",
+    "start": "pm2 start ecosystem.config.js --env production",
     "start:dev": "nodemon src/server.ts"
   },
   "keywords": [],

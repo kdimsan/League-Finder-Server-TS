@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "proxyserverts",
-      script: "./dist/src/server.js",
+      script: "./dist/server.js",
       watch: false,
       exec_mode: "fork",
       instances: 1,
