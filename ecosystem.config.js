@@ -1,8 +1,8 @@
 module.exports = {
   apps: [
     {
-      name: "nome-do-app",
-      script: "./src/server.ts",
+      name: "proxyserverts",
+      script: "./dist/server.js",
       watch: false,
       exec_mode: "fork",
       instances: 1,
