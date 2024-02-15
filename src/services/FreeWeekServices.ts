@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { ChampionData } from "../@types/champions/championsResponses";
 import { FreeWeekRes } from "../@types/freeWeek/freeWeekTypes";
-import { setRedis } from "../redisConfig";
 
 class FreeWeekServices {
   private readonly KEY = process.env.API_KEY;
@@ -19,7 +18,6 @@ class FreeWeekServices {
     try {
       const championsRes: ChampionData = (await axios.get(this.championsUrl))
         .data.data;
-      await setRedis("all-champions", JSON.stringify(championsRes));
 
       const freeWeekRes: FreeWeekRes = (await axios.get(this.freeWeekUrl)).data;
       const freeWeekChampionIds: number[] = freeWeekRes.freeChampionIds;
