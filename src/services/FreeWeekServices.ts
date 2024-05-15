@@ -1,5 +1,5 @@
 require("dotenv/config");
-const ChampionsUltil = require("../utils/ChampionsUtil");
+const ChampionsUtil = require("../utils/ChampionsUtil");
 import { Request, Response } from "express";
 import axios from "axios";
 import { ChampionData } from "../@types/champions/championsResponses";
@@ -24,17 +24,19 @@ class FreeWeekServices {
 
       const freeWeekChampionsDataPromises = freeWeekChampionIds.map(
         async (key) => {
-          return await ChampionsUltil.findChampionsByKey(key);
+          return await ChampionsUtil.findChampionsByKey(key);
         }
       );
 
-      const freeWeekChampionsData = await Promise.all(
+      const freeWeekChampionsData: ChampionData[] = await Promise.all(
         freeWeekChampionsDataPromises
       );
 
+      const allChampionsRes: ChampionData[] = Object.values(championsRes);
+
       return response.json({
         freeWeekChampionsData,
-        championsRes,
+        allChampionsRes,
       });
     } catch (error) {
       console.error("Error fetching free week data.", error);

@@ -13,7 +13,7 @@ class ChampionDetailsServices {
 
     const championDetails = (await axios.get(championDetailsUrl)).data.data;
 
-    return response.json({ championDetails });
+    return response.json(championDetails);
   }
 }
 module.exports = ChampionDetailsServices;
