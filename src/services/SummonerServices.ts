@@ -5,6 +5,7 @@ import {
   SummonerByPuuid,
   SummonerMaestryChampionsApiRes,
   SummonerRankedData,
+  SummonerResByGameName,
   SummonerResponseData,
   TopSummonerChampions,
 } from "../@types/summoners/summonerResponse";
@@ -49,7 +50,7 @@ class SummonersServices {
     const summonerDataByTagLineUrl = `https://europe.${this.baseUrl}/${this.baseSummonerUrl}/${gameName}/${tagLine}?api_key=${this.KEY}`;
 
     try {
-      const summonerResponseApi: SummonerResponseData = (
+      const summonerResponseApi: SummonerResByGameName = (
         await axios.get(summonerDataByTagLineUrl)
       )["data"];
 
@@ -60,7 +61,18 @@ class SummonersServices {
         await axios.get(summonerDataByPuuidUrl)
       )["data"];
 
-      return summonerDataByPuuidRes;
+      const summonerResponseData: SummonerResponseData = {
+        gameName: summonerResponseApi.gameName,
+        tagLine: summonerResponseApi.tagLine,
+        puuid: summonerPuuid,
+        accountId: summonerDataByPuuidRes.accountId,
+        id: summonerDataByPuuidRes.id,
+        profileIconId: summonerDataByPuuidRes.profileIconId,
+        revisionDate: summonerDataByPuuidRes.revisionDate,
+        summonerLevel: summonerDataByPuuidRes.summonerLevel,
+      };
+
+      return summonerResponseData;
     } catch (error: any) {
       return error;
     }

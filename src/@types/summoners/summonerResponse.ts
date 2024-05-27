@@ -1,4 +1,4 @@
-export interface SummonerResponseData {
+export interface SummonerResByGameName {
   puuid: string;
   gameName: string;
   tagLine: string;
@@ -8,8 +8,18 @@ export interface SummonerByPuuid {
   id: string;
   accountId: string;
   puuid: string;
-  name: string;
-  profileIcon: number;
+  profileIconId: number;
+  revisionDate: number;
+  summonerLevel: number;
+}
+
+export interface SummonerResponseData {
+  gameName: string;
+  tagLine: string;
+  id: string;
+  accountId: string;
+  puuid: string;
+  profileIconId: number;
   revisionDate: number;
   summonerLevel: number;
 }
