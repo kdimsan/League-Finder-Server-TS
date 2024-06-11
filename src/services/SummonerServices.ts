@@ -20,6 +20,8 @@ import {
   Participant,
   Team,
   TeamsResponse,
+  SummonerMatchDataProps,
+  ParticipantsFullReturnProps,
 } from "../@types/matches/matchesTypes";
 import {
   ChampionBase,
@@ -112,12 +114,12 @@ class SummonersServices {
         try {
           const response: MatchResponse = (await axios.get(match)).data;
 
-          const participantsArray: ParticipantsReturn[] =
-            this.participantsMapping(response.info.participants);
+          const participantsArray: ParticipantsFullReturnProps =
+            this.participantsMapping(response.info.participants, summonerPuiid);
 
           const teamsArray: TeamsResponse[] = await this.teamsMapping(
             response.info.teams,
-            participantsArray
+            participantsArray.returnParticipantsArray
           );
 
           const matchInfoReturn: InfoReturn = {
@@ -127,7 +129,8 @@ class SummonersServices {
             gameDuration: response.info.gameDuration,
             gameType: response.info.gameType,
             queueId: response.info.queueId,
-            participantsData: participantsArray,
+            searchSummonerData: participantsArray.summonerMatchData,
+            participantsData: participantsArray.returnParticipantsArray,
             teams: teamsArray,
           };
 
@@ -178,10 +181,11 @@ class SummonersServices {
     }
   }
 
-  participantsMapping(participants: Participant[]) {
+  participantsMapping(participants: Participant[], summonerPuuid: string) {
     const returnParticipantsArray: ParticipantsReturn[] = [];
+    let summonerMatchData: SummonerMatchDataProps | null = null;
 
-    participants.map((participant) => {
+    participants.forEach((participant) => {
       const primaryRune = participant.perks.styles[0].selections[0].perk;
       const secondaryRune = participant.perks.styles[1].style;
       const runes = {
@@ -209,7 +213,7 @@ class SummonersServices {
       const totalFarm =
         participant.totalMinionsKilled + participant.neutralMinionsKilled;
 
-      return returnParticipantsArray.push({
+      returnParticipantsArray.push({
         assists: participant.assists,
         challenges: challengesReturn,
         champLevel: participant.champLevel,
@@ -241,8 +245,23 @@ class SummonersServices {
         wardsPlaced: participant.wardsPlaced,
         win: participant.win,
       });
+
+      if (participant.puuid === summonerPuuid) {
+        summonerMatchData = {
+          puiid: participant.puuid,
+          championName: participant.championName,
+          win: participant.win,
+          lane: participant.lane,
+          role: participant.role,
+        };
+      }
     });
-    return returnParticipantsArray;
+    const participantsWithSummonerData: ParticipantsFullReturnProps = {
+      summonerMatchData: summonerMatchData,
+      returnParticipantsArray: returnParticipantsArray,
+    };
+
+    return participantsWithSummonerData;
   }
 
   async teamsMapping(teams: Team[], participantsMapped: ParticipantsReturn[]) {

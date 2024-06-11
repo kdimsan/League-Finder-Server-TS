@@ -23,6 +23,7 @@ export interface InfoReturn {
   participantsData: ParticipantsReturn[];
   queueId: number;
   teams: TeamsResponse[];
+  searchSummonerData: SummonerMatchDataProps | null;
 }
 
 export interface Info {
@@ -75,6 +76,11 @@ export interface Participant {
   win: boolean;
 }
 
+export interface ParticipantsFullReturnProps {
+  summonerMatchData: SummonerMatchDataProps | null;
+  returnParticipantsArray: ParticipantsReturn[];
+}
+
 export interface ParticipantsReturn {
   assists: number;
   challenges: Challenges;
@@ -106,6 +112,14 @@ export interface ParticipantsReturn {
   wardsKilled: number;
   wardsPlaced: number;
   win: boolean;
+}
+
+export interface SummonerMatchDataProps {
+  puiid: string;
+  championName: string;
+  win: boolean;
+  lane: string;
+  role: string;
 }
 
 interface Runes {
