@@ -31,12 +31,10 @@ import {
 interface SummonerQueryReq {
   gameName: string;
   tagLine: string;
-  accountRegion: string;
 }
 
 class SummonersServices {
   constructor(private accountRegion: string) {}
-  //private accountRegion: string = "br1"
   private readonly baseUrl = process.env.BASE_URL;
   private readonly KEY = process.env.API_KEY;
   private readonly rankedUrl = process.env.RANKED_URL;
@@ -48,8 +46,7 @@ class SummonersServices {
 
   async getSummonerData(
     gameName: string,
-    tagLine: string,
-    accountRegion: string
+    tagLine: string
   ): Promise<SummonerByPuuid> {
     const summonerDataByTagLineUrl = `https://europe.${this.baseUrl}/${this.baseSummonerUrl}/${gameName}/${tagLine}?api_key=${this.KEY}`;
 
@@ -60,7 +57,7 @@ class SummonersServices {
 
       const summonerPuuid = summonerResponseApi.puuid;
 
-      const summonerDataByPuuidUrl = `https://${accountRegion}.${this.baseUrl}/${this.summonerDetailsUrl}/${summonerPuuid}?api_key=${this.KEY}`;
+      const summonerDataByPuuidUrl = `https://${this.accountRegion}.${this.baseUrl}/${this.summonerDetailsUrl}/${summonerPuuid}?api_key=${this.KEY}`;
       const summonerDataByPuuidRes: SummonerByPuuid = (
         await axios.get(summonerDataByPuuidUrl)
       )["data"];
@@ -342,13 +339,9 @@ class SummonersServices {
     request: Request<{}, {}, {}, SummonerQueryReq>,
     response: Response
   ) {
-    const { gameName, tagLine, accountRegion } = request.query;
+    const { gameName, tagLine } = request.query;
 
-    const summonerData = await this.getSummonerData(
-      gameName,
-      tagLine,
-      accountRegion
-    );
+    const summonerData = await this.getSummonerData(gameName, tagLine);
 
     if (summonerData instanceof Error) {
       return response
