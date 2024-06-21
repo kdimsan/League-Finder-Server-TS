@@ -3,7 +3,7 @@ import "dotenv/config";
 const ChampionsUtil = require("../utils/ChampionsUtil");
 import {
   SummonerByPuuid,
-  SummonerMaestryChampionsApiRes,
+  SummonerMasteryChampionsApiRes,
   SummonerRankedData,
   SummonerResByGameName,
   SummonerResponseData,
@@ -31,6 +31,7 @@ import {
 interface SummonerQueryReq {
   gameName: string;
   tagLine: string;
+  accountRegion: string;
 }
 
 class SummonersServices {
@@ -39,7 +40,7 @@ class SummonersServices {
   private readonly baseUrl = process.env.BASE_URL;
   private readonly KEY = process.env.API_KEY;
   private readonly rankedUrl = process.env.RANKED_URL;
-  private readonly championMaestryUrl = process.env.CHAMPION_MAESTRY_URL;
+  private readonly championMasteryUrl = process.env.CHAMPION_MASTERY_URL;
   private readonly baseSummonerUrl = process.env.BASE_SUMMONER_URL;
   private readonly summonerDetailsUrl = process.env.SUMMONER_DETAILS_URL;
   private readonly matchesUrl = process.env.MATCHES_URL;
@@ -47,7 +48,8 @@ class SummonersServices {
 
   async getSummonerData(
     gameName: string,
-    tagLine: string
+    tagLine: string,
+    accountRegion: string
   ): Promise<SummonerByPuuid> {
     const summonerDataByTagLineUrl = `https://europe.${this.baseUrl}/${this.baseSummonerUrl}/${gameName}/${tagLine}?api_key=${this.KEY}`;
 
@@ -58,7 +60,7 @@ class SummonersServices {
 
       const summonerPuuid = summonerResponseApi.puuid;
 
-      const summonerDataByPuuidUrl = `https://${this.accountRegion}.${this.baseUrl}/${this.summonerDetailsUrl}/${summonerPuuid}?api_key=${this.KEY}`;
+      const summonerDataByPuuidUrl = `https://${accountRegion}.${this.baseUrl}/${this.summonerDetailsUrl}/${summonerPuuid}?api_key=${this.KEY}`;
       const summonerDataByPuuidRes: SummonerByPuuid = (
         await axios.get(summonerDataByPuuidUrl)
       )["data"];
@@ -148,17 +150,17 @@ class SummonersServices {
     }
   }
 
-  async getMaestryChampions(
+  async getMasteryChampions(
     summonerPuuid: string
   ): Promise<TopSummonerChampions[]> {
-    const summonerMaestryChampionsUrl = `https://${this.accountRegion}.${this.baseUrl}/${this.championMaestryUrl}/${summonerPuuid}?api_key=${this.KEY}`;
+    const summonerMasteryChampionsUrl = `https://${this.accountRegion}.${this.baseUrl}/${this.championMasteryUrl}/${summonerPuuid}?api_key=${this.KEY}`;
 
     try {
-      const summonerMasteryResponse: SummonerMaestryChampionsApiRes[] = (
-        await axios.get(summonerMaestryChampionsUrl)
+      const summonerMasteryResponse: SummonerMasteryChampionsApiRes[] = (
+        await axios.get(summonerMasteryChampionsUrl)
       ).data;
 
-      const summonerTopMaestryChampionsPromises: Promise<TopSummonerChampions>[] =
+      const summonerTopMasteryChampionsPromises: Promise<TopSummonerChampions>[] =
         summonerMasteryResponse.slice(0, 10).map(async (championKey) => {
           const championKeyToCompare = championKey.championId;
           const foundChampion: ChampionData =
@@ -173,9 +175,9 @@ class SummonersServices {
             chestGranted: championKey.chestGranted,
           };
         });
-      const summonerTopMaestryChampions: TopSummonerChampions[] =
-        await Promise.all(summonerTopMaestryChampionsPromises);
-      return summonerTopMaestryChampions;
+      const summonerTopMasteryChampions: TopSummonerChampions[] =
+        await Promise.all(summonerTopMasteryChampionsPromises);
+      return summonerTopMasteryChampions;
     } catch (error: any) {
       return error;
     }
@@ -340,9 +342,13 @@ class SummonersServices {
     request: Request<{}, {}, {}, SummonerQueryReq>,
     response: Response
   ) {
-    const { gameName, tagLine } = request.query;
+    const { gameName, tagLine, accountRegion } = request.query;
 
-    const summonerData = await this.getSummonerData(gameName, tagLine);
+    const summonerData = await this.getSummonerData(
+      gameName,
+      tagLine,
+      accountRegion
+    );
 
     if (summonerData instanceof Error) {
       return response
@@ -358,11 +364,11 @@ class SummonersServices {
         .json({ error: "Error retrieving ranked data" });
     }
 
-    const summonerMaestryChampionsData = await this.getMaestryChampions(
+    const summonerMasteryChampionsData = await this.getMasteryChampions(
       summonerData.puuid
     );
 
-    if (summonerMaestryChampionsData instanceof Error) {
+    if (summonerMasteryChampionsData instanceof Error) {
       return response
         .status(500)
         .json({ error: "Error retrieving top mastery champions" });
@@ -375,7 +381,7 @@ class SummonersServices {
     response.json({
       summonerData,
       summonerRankedData,
-      summonerMaestryChampionsData,
+      summonerMasteryChampionsData,
       summonerLatestMatchesData,
     });
   }

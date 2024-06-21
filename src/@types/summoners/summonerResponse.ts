@@ -40,7 +40,7 @@ export interface SummonerRankedData {
   inactive: boolean;
 }
 
-export interface SummonerMaestryChampionsApiRes {
+export interface SummonerMasteryChampionsApiRes {
   puuid: string;
   championId: number;
   championLevel: number;
