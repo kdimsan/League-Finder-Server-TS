@@ -62,6 +62,7 @@ class SummonersServices {
       const summonerDataByPuuidRes: SummonerByPuuid = (
         await axios.get(summonerDataByPuuidUrl)
       )["data"];
+      console.log(" PUUID RES", summonerDataByPuuidRes);
 
       const summonerResponseData: SummonerResponseData = {
         gameName: summonerResponseApi.gameName,
@@ -179,7 +180,27 @@ class SummonersServices {
         await Promise.all(summonerTopMasteryChampionsPromises);
       return summonerTopMasteryChampions;
     } catch (error: any) {
-      return error;
+      if (axios.isAxiosError(error)) {
+        console.error("AxiosError:", error.message);
+        if (error.response) {
+          console.error("Response status:", error.response.status);
+          console.error("Response data:", error.response.data);
+          throw new Error(
+            `Failed to fetch mastery champions: ${error.response.status} - ${error.response.data}`
+          );
+        } else if (error.request) {
+          console.error("No response received:", error.request);
+          throw new Error(
+            "No response received from the server while fetching mastery champions."
+          );
+        } else {
+          console.error("Axios error:", error.message);
+          throw new Error(`Unexpected Axios error: ${error.message}`);
+        }
+      } else {
+        console.error("Unexpected error:", error);
+        throw new Error(`Unexpected error: ${error.message}`);
+      }
     }
   }
 
