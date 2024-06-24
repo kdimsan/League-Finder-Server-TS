@@ -27,6 +27,7 @@ import {
   ChampionBase,
   ChampionData,
 } from "../@types/champions/championsResponses";
+import { regionsMapFn } from "../utils/functions/regionsMapFn";
 
 interface SummonerQueryReq {
   gameName: string;
@@ -99,13 +100,15 @@ class SummonersServices {
     summonerPuiid: string
   ): Promise<MatchesDetailsReturn[]> {
     try {
-      const matchesIdsUrl = `https://americas.${this.baseUrl}/${this.matchesUrl}/${summonerPuiid}/ids?start=0&count=20&api_key=${this.KEY}`;
+      const mainRegion = regionsMapFn(this.accountRegion);
+
+      const matchesIdsUrl = `https://${mainRegion}.${this.baseUrl}/${this.matchesUrl}/${summonerPuiid}/ids?start=0&count=20&api_key=${this.KEY}`;
       const matchesIdsResponse: string[] = (await axios.get(matchesIdsUrl))
         .data;
 
       const matchesUrls: string[] = matchesIdsResponse.map(
         (matchId) =>
-          `https://americas.${this.baseUrl}/${this.matchByIdUrl}/${matchId}?api_key=${this.KEY}`
+          `https://${mainRegion}.${this.baseUrl}/${this.matchByIdUrl}/${matchId}?api_key=${this.KEY}`
       );
       const matchesDetailsArray: MatchesDetailsReturn[] = [];
 
