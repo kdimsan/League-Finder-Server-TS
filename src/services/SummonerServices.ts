@@ -62,7 +62,6 @@ class SummonersServices {
       const summonerDataByPuuidRes: SummonerByPuuid = (
         await axios.get(summonerDataByPuuidUrl)
       )["data"];
-      console.log(" PUUID RES", summonerDataByPuuidRes);
 
       const summonerResponseData: SummonerResponseData = {
         gameName: summonerResponseApi.gameName,
