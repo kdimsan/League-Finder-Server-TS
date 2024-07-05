@@ -21,9 +21,15 @@ export interface InfoReturn {
   gameDuration: number;
   gameType: string;
   participantsData: ParticipantsReturn[];
-  queueId: number;
+  queueType: QueueFormatedProps;
   teams: TeamsResponse[];
   searchSummonerData: SummonerMatchDataProps | null;
+}
+
+export interface QueueFormatedProps {
+  queueDescription: string | null;
+  map: string;
+  notes: string | null;
 }
 
 export interface Info {

@@ -28,6 +28,7 @@ import {
   ChampionData,
 } from "../@types/champions/championsResponses";
 import { regionsMapFn } from "../utils/functions/regionsMapFn";
+import { queueDataFn } from "../utils/functions/queueDataFn";
 
 interface SummonerQueryReq {
   gameName: string;
@@ -124,13 +125,15 @@ class SummonersServices {
             participantsArray.returnParticipantsArray
           );
 
+          const queueTypeResponse = queueDataFn(response.info.queueId);
+
           const matchInfoReturn: InfoReturn = {
             gameMode: response.info.gameMode,
             gameStartTimestamp: response.info.gameStartTimestamp,
             gameEndTimestamp: response.info.gameEndTimestamp,
             gameDuration: response.info.gameDuration,
             gameType: response.info.gameType,
-            queueId: response.info.queueId,
+            queueType: queueTypeResponse,
             searchSummonerData: participantsArray.summonerMatchData,
             participantsData: participantsArray.returnParticipantsArray,
             teams: teamsArray,
