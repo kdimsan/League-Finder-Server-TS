@@ -246,6 +246,7 @@ class SummonersServices {
         championName: participant.championName,
         deaths: participant.deaths,
         goldEarned: participant.goldEarned,
+        individualPosition: participant.individualPosition,
         kills: participant.kills,
         lane: participant.lane,
         neutralMinionsKilled: participant.neutralMinionsKilled,
@@ -260,6 +261,7 @@ class SummonersServices {
         summonerSpell2: participant.summoner2Id,
         summonerLevel: participant.summonerLevel,
         teamId: participant.teamId,
+        teamPosition: participant.teamPosition,
         totalDamageDealtToChampions: participant.totalDamageDealtToChampions,
         totalDamageTaken: participant.totalDamageTaken,
         totalMinionsKilled: participant.totalMinionsKilled,
@@ -272,12 +274,17 @@ class SummonersServices {
       });
 
       if (participant.puuid === summonerPuuid) {
+        const support =
+          participant.teamPosition === "UTILITY"
+            ? "SUPPORT"
+            : participant.teamPosition;
         summonerMatchData = {
           puiid: participant.puuid,
           championName: participant.championName,
           win: participant.win,
           lane: participant.lane,
-          role: participant.role,
+          role: support,
+          teamId: participant.teamId,
         };
       }
     });

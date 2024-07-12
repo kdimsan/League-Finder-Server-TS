@@ -52,6 +52,7 @@ export interface Participant {
   championName: string;
   deaths: number;
   goldEarned: number;
+  individualPosition: string;
   item0: number;
   item1: number;
   item2: number;
@@ -73,6 +74,7 @@ export interface Participant {
   summoner2Id: string;
   summonerLevel: number;
   teamId: number;
+  teamPosition: string;
   totalDamageDealtToChampions: number;
   totalDamageTaken: number;
   totalMinionsKilled: number;
@@ -95,6 +97,7 @@ export interface ParticipantsReturn {
   championName: string;
   deaths: number;
   goldEarned: number;
+  individualPosition: string;
   kills: number;
   lane: string;
   neutralMinionsKilled: number;
@@ -109,6 +112,7 @@ export interface ParticipantsReturn {
   summonerSpell2: string;
   summonerLevel: number;
   teamId: number;
+  teamPosition: string;
   totalDamageDealtToChampions: number;
   totalDamageTaken: number;
   totalMinionsKilled: number;
@@ -126,6 +130,7 @@ export interface SummonerMatchDataProps {
   win: boolean;
   lane: string;
   role: string;
+  teamId: number;
 }
 
 interface Runes {
